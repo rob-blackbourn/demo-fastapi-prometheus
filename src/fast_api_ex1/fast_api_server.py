@@ -9,6 +9,10 @@ from prometheus_fastapi_instrumentator import Instrumentator
 from pydantic import BaseModel
 import uvicorn
 
+from .custom_metrics import JobMetric, WorkMetric
+from .monitoring import monitor
+from .constants import APP_NAME, VERSION, HOST, FQDN
+
 LOGGER = logging.getLogger("fast-api-ex1")
 
 
@@ -28,7 +32,7 @@ class FastApiServer:
             methods=["GET"], response_model=Greeting
         )
         self.app.add_api_route(
-            "/do-work",
+            "/do-work/{work_name}",
             self.do_work,
             methods=["GET"],
         )
@@ -46,13 +50,15 @@ class FastApiServer:
 
     async def do_job(self, job: int, jobs: int) -> None:
         LOGGER.info("Working on job %d of %d", job + 1, jobs)
-        await asyncio.sleep(random.uniform(0.5, 2.0))
+        with monitor(JobMetric(HOST, APP_NAME, "something")):
+            await asyncio.sleep(random.uniform(0.5, 2.0))
 
-    async def do_work(self) -> str:
-        jobs = random.randint(1, 5)
-        LOGGER.info("Starting work with %d jobs", jobs)
-        for job in range(jobs):
-            await self.do_job(job, jobs)
+    async def do_work(self, work_name: str) -> str:
+        with monitor(WorkMetric(HOST, APP_NAME, work_name)):
+            jobs = random.randint(1, 5)
+            LOGGER.info("Starting work with %d jobs", jobs)
+            for job in range(jobs):
+                await self.do_job(job, jobs)
 
         return "done"
 
