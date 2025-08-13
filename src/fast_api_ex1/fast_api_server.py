@@ -11,7 +11,7 @@ import uvicorn
 
 from .custom_metrics import JobMetric, WorkMetric
 from .monitoring import monitor
-from .constants import APP_NAME, VERSION, HOST, FQDN
+from .constants import APP_NAME, HOST
 
 LOGGER = logging.getLogger("fast-api-ex1")
 
