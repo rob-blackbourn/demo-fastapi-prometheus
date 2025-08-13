@@ -68,7 +68,7 @@ class FastApiServer:
         self.server.should_exit = True
         return "stopping"
 
-    async def tick(self, stop_event: Event) -> None:
+    async def start(self, stop_event: Event) -> None:
         while not stop_event.is_set():
             LOGGER.info("Tick...")
             await asyncio.sleep(10)
@@ -79,7 +79,7 @@ class FastApiServer:
         self.instrumentator.expose(app)
 
         stop_event = Event()
-        task = asyncio.create_task(self.tick(stop_event))
+        task = asyncio.create_task(self.start(stop_event))
 
         yield
 
